@@ -1,0 +1,30 @@
+# Original ordinary-DPP experiment, retained for reproducing earlier runs.
+data:
+  alphabet: ACGT
+  kmer_length: 6
+  global_collection_size: 1000
+partition:
+  num_clients: 10
+selection:
+  forced_set_size: 0
+  client_selection_size: 50
+  final_selection_size: 50
+kernel:
+  name: hamming_rbf
+  gamma: 0.5
+  jitter: 0.0
+search:
+  algorithm: stochastic_local_search
+  patience: 20
+  improvement_tolerance: 1.0e-10
+  max_iterations: null
+  initialization: paired_uniform
+numerics:
+  symmetry_tolerance: 1.0e-12
+  psd_tolerance: 1.0e-10
+experiment:
+  seed: 42
+  repetitions: 5
+output:
+  directory: ../results
+  save_history: true

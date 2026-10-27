@@ -1,0 +1,32 @@
+# Same non-private pooled-context experiment, with five fresh paired trials.
+# Each trial's collection, partitions and G0 sets are fixed across sweep sizes.
+data:
+  alphabet: ACGT
+  kmer_length: 6
+  global_collection_size: 1000
+partition:
+  num_clients: 10
+selection:
+  forced_set_size: 10
+  client_selection_size: 50  # Overridden by the sweep YAML, not modified in place.
+  final_selection_size: 100
+  final_objective: pooled_context
+kernel:
+  name: hamming_rbf
+  gamma: 0.5
+  jitter: 0.0
+search:
+  algorithm: stochastic_local_search
+  patience: 50
+  improvement_tolerance: 1.0e-10
+  max_iterations: null
+  initialization: paired_uniform
+numerics:
+  symmetry_tolerance: 1.0e-12
+  psd_tolerance: 1.0e-10
+experiment:
+  seed: 43
+  repetitions: 5
+output:
+  directory: ../results
+  save_history: true

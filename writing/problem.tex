@@ -1,0 +1,219 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{microtype}
+
+\newcommand{\set}[1]{\left\{#1\right\}}
+\newcommand{\card}[1]{\left\lvert#1\right\rvert}
+\newcommand{\union}{\mathbin{\cup}}
+\newcommand{\logdet}{\operatorname{logdet}}
+
+\title{Federated Semi-Supervised $k$-DPP Selection}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+A determinantal point process, or DPP, is a probabilistic model for selecting a
+subset of items while favoring both useful items and diversity among the
+selected items. A k-DPP is a fixed-size version of a DPP and is useful when the
+number of items to select is known in advance. In a federated setting, multiple
+clients keep their local information private, perform computations locally,
+and contribute results that are combined into a shared output. In this project,
+each client uses its private context to produce a local k-DPP selection, and
+these local selections are combined into a public global set.
+
+\section{Initial Problem Statement}
+
+Let $\mathcal{S}=\set{s_1,\ldots,s_N}$ be a public global universe of
+items, and let $\mathcal{C}=\set{1,\ldots,C}$ be a set of clients. Client
+$i\in\mathcal{C}$ privately holds an immutable context set
+\[
+  G_{0,i} \subseteq \mathcal{S}.
+\]
+The membership, size, and overlap structure of each $G_{0,i}$ are private
+client information.
+
+Let $L \in \mathbb{R}^{N \times N}$ be a positive-semidefinite L-ensemble
+kernel over $\mathcal{S}$. For any $Y \subseteq \mathcal{S}$,
+let $L_Y$ denote the principal submatrix indexed by $Y$.
+
+Each client uses its private context to find a client-specific set $G_{1,i}$.
+The initial local objective is
+\begin{equation}
+  G_{1,i}^{*}
+  \in
+  \operatorname*{arg\,max}_{\substack{
+    G\subseteq\mathcal{S}\setminus G_{0,i}\\
+    \card{G}=k}}
+  \det\!\left(L_{G_{0,i}\union G}\right).
+  \label{eq:local-map}
+\end{equation}
+Thus, each client selects $k$ items that maximize the joint determinant with
+its own private set. The private set $G_{0,i}$ is not shared.
+
+After local optimization, an aggregation operator combines the client-specific
+selections into a global public set:
+\begin{equation}
+  G_1
+  =
+  \Gamma\!\left(G_{1,1}^{*},\ldots,G_{1,C}^{*}\right)
+  \subseteq \mathcal{S}.
+  \label{eq:global-aggregation}
+\end{equation}
+
+The opertor $\Gamma$ is a public aggregation operator that combines the client-specific selections into a global public set. The aggregation operator is not
+necessarily a simple union, but it must be a function of the client-specific selections. The aggregation operator is public and known to all clients.
+
+\section{Baseline}
+
+\subsection{Scope, data, and kernel}
+
+We first study a context-free, two-stage distributed DPP baseline and compare
+it with direct centralized sampling. This experiment isolates the effect of
+local candidate filtering before global sampling. It does not yet implement
+the private semi-supervised problem: all $G_{0,i}=\varnothing$. A client's data partition below is a
+candidate pool, not its private context set.
+
+Sample $N=10{,}000$ distinct DNA sequences of length $\ell=20$ uniformly
+without replacement from $\{\mathrm{A},\mathrm{C},\mathrm{G},\mathrm{T}\}^{\ell}$.
+Reverse complements are treated as distinct
+sequences. These items form the public collection $\mathcal{S}$. Randomly
+partition it into $C=10$ disjoint, equally sized client pools
+$\mathcal{S}_1,\ldots,\mathcal{S}_C$, each containing $1{,}000$ items.
+All clients participate; failures and non-IID partitions are not modeled.
+$b$ is the final selection size.
+
+Both settings use the same Hamming RBF L-ensemble kernel,
+\begin{equation}
+  d_H(x,y)=\sum_{r=1}^{\ell}\mathbf{1}\{x_r\ne y_r\},
+  \qquad
+  L_{xy}=\exp\!\left(-\gamma d_H(x,y)\right),
+  \qquad \gamma=0.6.
+  \label{eq:baseline-kernel}
+\end{equation}
+Here Hamming distance is the raw mismatch count, not the fraction of
+mismatching positions. The kernel has unit diagonal, no additional quality
+weights, and zero jitter. 
+
+\subsection{Distributed baseline: local DPPs followed by a server $k$-DPP}
+
+Each client independently draws one subset $A_i\subseteq\mathcal{S}_i$
+from an ordinary, variable-size DPP:
+\begin{equation}
+  \Pr(A_i=A)
+  =\frac{\det(L_A)}{\det(I_{\card{\mathcal{S}_i}}+L_{\mathcal{S}_i})},
+  \qquad A\subseteq\mathcal{S}_i.
+  \label{eq:baseline-local-dpp}
+\end{equation}
+This is the L-ensemble law in Kulesza and Taskar~\cite{kulesza2011},
+Section~2, Equation~(4). There is no fixed local selection size: both
+$\card{A_i}$ and the merged pool size are random. The server receives the
+selected global item IDs and forms
+\begin{equation}
+  P=\bigcup_{i=1}^{C} A_i,
+  \qquad m=\card{P}=\sum_{i=1}^{C}\card{A_i}.
+  \label{eq:baseline-pool}
+\end{equation}
+The equality holds because the client pools are disjoint.
+
+For a chosen selection size $b\le m$, the server samples exactly $b$ items from $P$:
+\begin{equation}
+  \Pr(G_1^{\mathrm{fed}}=Y\mid P)
+  =\frac{\det(L_Y)}{e_b(\lambda(L_P))},
+  \qquad Y\subseteq P,\quad \card{Y}=b,
+  \label{eq:baseline-server-kdpp}
+\end{equation}
+where $\lambda(L_P)$ denotes the eigenvalues of the pool kernel and $e_b$
+is the elementary symmetric polynomial of degree $b$. This is a fixed-size
+DPP on the realized pool, following Section~3, Equation~(12)
+of~\cite{kulesza2011}. The server returns one shared public set
+$G_1^{\mathrm{fed}}$ to all clients. Local selections are only intermediate
+candidate sets; their union is not the final output.
+
+Items excluded from $P$ cannot appear in the final server draw.
+Consequently, the two-stage law is
+not claimed to equal a $k$-DPP on the full collection $\mathcal{S}$.
+
+This is a non-private simulation: the universe and item features are public,
+and the server observes client-labeled local selections and final outputs
+in plaintext. Communication consists of one upload round and one
+broadcast round for the final selection. Other approaches such as SLS, MCMC can be tested against this baseline. 
+
+\subsection{Centralized reference: direct sampling from the full collection}
+
+The centralized setting uses the exact same $10{,}000$ sequences as the
+distributed setting, with the same item IDs and kernel
+parameters. A single sampler has access to the entire collection and performs
+no local selection or pool merging. It directly draws
+\begin{equation}
+  \Pr(G_1^{\mathrm{cent}}=Y)
+  =\frac{\det(L_Y)}{e_b(\lambda(L))},
+  \qquad Y\subseteq\mathcal{S},\quad \card{Y}=b.
+  \label{eq:baseline-centralized-kdpp}
+\end{equation}
+Thus, every global item remains eligible, unlike the distributed baseline
+where eligibility is restricted to $P$. This reference deliberately permits
+a dense global kernel; it is not a scalable private protocol. Both settings
+use the same final selection size $b$, which must satisfy $b\le m$ for the
+distributed baseline to be feasible.
+
+In the existing implementation, local ordinary DPPs use DPPy's exact
+spectral/projection sampler with Gram--Schmidt mode. Both fixed-size stages
+(the server and centralized reference) use the same exact rejection sampler,
+with Hadamard bounds and complementary-minor identities.
+\subsection{Comparison metrics}
+
+Compare centralized and distributed final subsets of the same size using
+mean nearest-neighbor distance and its 10th percentile. Both are
+\emph{within-subset} measures: for a selected item $x\in Y$, find its
+nearest \emph{other} item in the same selected subset $Y$:
+\begin{equation}
+  d_{\mathrm{NN}}(x;Y)
+  =\min_{y\in Y\setminus\{x\}} d_H(x,y),
+  \qquad x\in Y,\quad b\ge2.
+  \label{eq:baseline-within-nn}
+\end{equation}
+Distances are raw Hamming mismatch counts, with self-matches excluded.
+Compute these distances separately within each method's subset, not between
+the two methods' subsets or between the full global collection and a subset.
+
+\paragraph{Nearest-neighbor distance.}
+Report the mean of the $b$ within-subset nearest-neighbor distances:
+\begin{equation}
+  \overline d_{\mathrm{NN}}(Y)
+  =\frac{1}{b}\sum_{x\in Y} d_{\mathrm{NN}}(x;Y).
+  \label{eq:baseline-mean-nn}
+\end{equation}
+A higher mean means selected items are farther from their closest neighbors
+on average, indicating greater within-subset diversity through local
+separation.
+
+\paragraph{10th percentile of nearest-neighbor distance.}
+Report the lower-tail summary
+\begin{equation}
+  q_{0.10}(Y)=\operatorname{Quantile}_{0.10}
+    \!\left((d_{\mathrm{NN}}(x;Y))_{x\in Y}\right).
+  \label{eq:baseline-nn-tenth-percentile}
+\end{equation}
+This is the cutoff around the lowest 10\% of the selected items'
+nearest-neighbor distances; ties can make the proportion at or below the
+cutoff larger than 10\%. A higher value indicates greater separation among
+the more closely spaced selected items, and hence greater lower-tail
+within-subset diversity. It does not guarantee a minimum distance for every
+pair. For both metrics, higher values indicate greater diversity in this
+nearest-neighbor sense when subset size and sequence length are held fixed.
+
+
+\begin{thebibliography}{1}
+\bibitem{kulesza2011}
+Alex Kulesza and Ben Taskar.
+\emph{$k$-DPPs: Fixed-Size Determinantal Point Processes}.
+Proceedings of the 28th International Conference on Machine Learning, 2011.
+\end{thebibliography}
+
+\end{document}

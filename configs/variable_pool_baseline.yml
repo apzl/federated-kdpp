@@ -1,0 +1,25 @@
+# CONTEXT-FREE, NON-PRIVATE baseline. Local selection sizes are random.
+# Per client: ordinary DPP. Server: exact k-DPP at every requested size.
+data:
+  alphabet: ACGT
+  kmer_length: 20
+  global_collection_size: 10000
+partition:
+  num_clients: 10
+kernel:
+  name: hamming_rbf
+  gamma: 0.6
+  jitter: 0.0
+sweep:
+  minimum_selection_size: 10
+  selection_size_interval: 5
+numerics:
+  symmetry_tolerance: 1.0e-12
+  psd_tolerance: 1.0e-10
+experiment:
+  seed: 42
+  repetitions: 3  # Fresh data and local draws; one server draw per size/trial.
+output:
+  directory: ../results
+  save_history: false
+  save_chain: false

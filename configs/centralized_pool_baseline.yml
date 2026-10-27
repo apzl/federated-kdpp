@@ -1,0 +1,14 @@
+# Reuse all three EXACT saved datasets, not only the merged local suggestions.
+# Data, alphabet, sequence length, gamma=0.6, jitter=0, and tolerances inherited.
+source:
+  results: ../results/variable_pool_dpp_baseline_20261019T150704450041Z_8601b7b9/results.json
+sweep:
+  minimum_selection_size: 10
+  maximum_selection_size: 5000
+  selection_size_interval: 5
+experiment:
+  seed: 42  # Separate centralized RNG stream; one draw per size/saved trial.
+output:
+  directory: ../results
+  save_history: false
+  save_chain: false

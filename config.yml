@@ -1,0 +1,33 @@
+# Non-private pooled-context baseline: clients share their G0 with the server.
+# Both final searches fix the SAME combined G0, containing 10 * 10 = 100 items.
+data:
+  alphabet: ACGT
+  kmer_length: 6
+  global_collection_size: 1000
+partition:
+  num_clients: 10
+  # Each client receives global_collection_size / num_clients items.
+selection:
+  forced_set_size: 10  # Reserved locally from each client's 100-item pool.
+  client_selection_size: 50
+  final_selection_size: 100
+  final_objective: pooled_context  # Score logdet(G0_pooled union G1), not G1 alone.
+kernel:
+  name: hamming_rbf
+  gamma: 0.5  # Initial illustrative value; tune in later experiments.
+  jitter: 0.0
+search:
+  algorithm: stochastic_local_search
+  patience: 50  # Consecutive proposals without strict logdet improvement.
+  improvement_tolerance: 1.0e-10
+  max_iterations: null  # Optional safety cap; null uses the patience rule alone.
+  initialization: paired_uniform
+numerics:
+  symmetry_tolerance: 1.0e-12
+  psd_tolerance: 1.0e-10
+experiment:
+  seed: 42
+  repetitions: 5
+output:
+  directory: results
+  save_history: true

@@ -1,0 +1,31 @@
+# One Kulesza-Taskar exact draw per stage, paired with the gamma=0.25 SLS data.
+# NON-PRIVATE pooled-context baseline: all G0_i are disclosed to the server.
+data:
+  alphabet: ACGT
+  kmer_length: 6
+  global_collection_size: 1000
+partition:
+  num_clients: 10
+selection:
+  forced_set_size: 10
+  client_selection_size: 20
+  final_selection_size: 100
+  final_objective: pooled_context
+kernel:
+  name: hamming_rbf
+  gamma: 0.25
+  jitter: 0.0
+search:
+  algorithm: dppy_exact
+  exact_mode: KuTa12
+  initialization: independent_uniform  # Not used: exact samples have no initial state.
+numerics:
+  symmetry_tolerance: 1.0e-12
+  psd_tolerance: 1.0e-10
+experiment:
+  seed: 42
+  repetitions: 3
+output:
+  directory: ../results
+  save_history: false
+  save_chain: false

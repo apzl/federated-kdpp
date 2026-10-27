@@ -1,0 +1,33 @@
+# Original SLS scientific settings, with the user-requested local size and trials.
+# Non-private: every client's fixed G0 is disclosed and pooled at the server.
+data:
+  alphabet: ACGT
+  kmer_length: 6
+  global_collection_size: 1000
+partition:
+  num_clients: 10
+selection:
+  forced_set_size: 10
+  client_selection_size: 20
+  final_selection_size: 100
+  final_objective: pooled_context
+kernel:
+  name: hamming_rbf
+  gamma: 0.5  # Replaced for ALL stages by each gamma sweep value.
+  jitter: 0.0
+search:
+  algorithm: stochastic_local_search
+  patience: 50
+  improvement_tolerance: 1.0e-10
+  max_iterations: null
+  initialization: paired_uniform
+numerics:
+  symmetry_tolerance: 1.0e-12
+  psd_tolerance: 1.0e-10
+experiment:
+  seed: 42
+  repetitions: 3
+output:
+  directory: ../results
+  save_history: true
+  save_chain: false

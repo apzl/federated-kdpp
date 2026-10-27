@@ -1,0 +1,4 @@
+kmer_lengths: [4, 6, 8, 10, 12, 14, 16, 18, 20]
+# 4 has only 256 distinct DNA strings, so cannot supply 1000 unique items.
+# Record this point explicitly; do not alter N, contexts, clients or jitter.
+skip_infeasible: true

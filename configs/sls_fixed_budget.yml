@@ -1,0 +1,35 @@
+# Repeat the seed-42, gamma-0.25 SLS baseline on the same three paired datasets.
+# Exact proposal counts replace patience stopping; global includes the server.
+data:
+  alphabet: ACGT
+  kmer_length: 6
+  global_collection_size: 1000
+partition:
+  num_clients: 10
+selection:
+  forced_set_size: 10
+  client_selection_size: 20
+  final_selection_size: 100
+  final_objective: pooled_context
+kernel:
+  name: hamming_rbf
+  gamma: 0.25
+  jitter: 0.0
+search:
+  algorithm: stochastic_local_search
+  local_proposal_budget: 10000
+  global_proposal_budget: 100000
+  patience: 50  # Ignored for stages with a fixed proposal budget.
+  improvement_tolerance: 1.0e-10
+  max_iterations: null
+  initialization: paired_uniform
+numerics:
+  symmetry_tolerance: 1.0e-12
+  psd_tolerance: 1.0e-10
+experiment:
+  seed: 42
+  repetitions: 3
+output:
+  directory: ../results
+  save_history: false  # Store selected sets/counters/scores; omit large trajectories.
+  save_chain: false

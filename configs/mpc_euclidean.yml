@@ -1,0 +1,29 @@
+# Arithmetic/SLS proof of concept, not an exact k-DPP sampler.
+total_points: 24
+dimension: 4
+private_fraction: 0.25
+num_clients: 3
+gamma: 1.0
+jitter: 0.0
+selection_size: 6
+patience: 50
+# Execute all proposals; freeze the secret state after patience is reached.
+max_proposals: 200
+improvement_tolerance: 1.0e-10
+repetitions: 3
+# Controls public initialization only; does NOT generate private inputs/coins.
+public_seed: 42
+bit_length: 128
+fractional_bits: 64
+# Convert the full-set pivots once before multiplying to avoid underflow.
+determinant_bit_length: 256
+determinant_fractional_bits: 128
+statistical_security_bits: 40
+exp_degree: 12
+log_terms: 12
+minimum_pivot: 1.0e-12
+maximum_log_ratio: 16.0
+logdet_absolute_tolerance: 1.0e-7
+ratio_relative_tolerance: 1.0e-7
+timeout_seconds: 900
+output_directory: ../results

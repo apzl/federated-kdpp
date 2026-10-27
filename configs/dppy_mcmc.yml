@@ -1,0 +1,32 @@
+# Non-private pooled-context conditional k-DPP sampling.
+# Reuses the previous seed-43 datasets; fixed within each trial across sizes.
+data:
+  alphabet: ACGT
+  kmer_length: 6
+  global_collection_size: 1000
+partition:
+  num_clients: 10
+selection:
+  forced_set_size: 10
+  client_selection_size: 50  # Swept through 10,20,...,90.
+  final_selection_size: 100
+  final_objective: pooled_context
+kernel:
+  name: hamming_rbf
+  gamma: 0.5
+  jitter: 0.0
+search:
+  algorithm: dppy_mcmc
+  chain_steps: 10000  # Transitions; saved chain includes initial state (10001 rows).
+  burn_in: 2000      # Diagnostic window only; terminal state is used at every stage.
+  initialization: paired_uniform
+numerics:
+  symmetry_tolerance: 1.0e-12
+  psd_tolerance: 1.0e-10
+experiment:
+  seed: 43
+  repetitions: 5
+output:
+  directory: ../results
+  save_history: false  # Scores and every selected set are instead saved in NPZ chains.
+  save_chain: true
